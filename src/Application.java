@@ -10,6 +10,8 @@ import weka.classifiers.trees.J48;
 import weka.classifiers.bayes.NaiveBayes;
 import weka.core.converters.ArffSaver;
 import weka.filters.Filter;
+import weka.filters.unsupervised.attribute.Remove;
+import weka.filters.unsupervised.attribute.RemoveType;
 import weka.filters.unsupervised.instance.RemovePercentage;
 
 /**
@@ -46,14 +48,30 @@ public class Application {
 
         // Load the training sets
         Instances rawSet = loadArffFile(rawFile);
+
+        // Preprocess by removing string attributes
+        RemoveType rt = new RemoveType();
+        rt.setInputFormat(rawSet);
+        Instances preprocessedSet = Filter.useFilter(rawSet, rt);
+
+        // Preprocess by removing unessesary features
+        Remove r = new Remove();
+        String[] rOptions = new String[2];
+        rOptions[0] = "-R";
+        rOptions[1] = "1,2";
+        //rOptions[2] = "1";
+        r.setOptions(rOptions);
+        r.setInputFormat(rawSet);
+        preprocessedSet = Filter.useFilter(rawSet, r);
+
         RemovePercentage rp_train = new RemovePercentage();
         rp_train.setOptions(options_train);
-        rp_train.setInputFormat(rawSet);
+        rp_train.setInputFormat(preprocessedSet);
         RemovePercentage rp_val = new RemovePercentage();
         rp_val.setOptions(options_val);
-        rp_val.setInputFormat(rawSet);
-        Instances train_data = Filter.useFilter(rawSet, rp_train);   // apply filter
-        Instances val_data = Filter.useFilter(rawSet, rp_val);   // apply filter
+        rp_val.setInputFormat(preprocessedSet);
+        Instances train_data = Filter.useFilter(preprocessedSet, rp_train);   // apply filter
+        Instances val_data = Filter.useFilter(preprocessedSet, rp_val);   // apply filter
         System.out.println("finished loading data");
 
         // Save the filtered data sets
@@ -73,15 +91,60 @@ public class Application {
 
 
 
-    public void removeFeatures(String inputFolder, String[] features, String outputFolder) {
+
+    /*public void removeFeatures(String inputFolder, String[] features) {
+
+        File inFolder = new File(inputFolder);
+        String parentPath = inFolder.getParentFile().getPath();
+        String outFolderName = "/DEV_PREPROCESS";
+        File outFolder = new File(parentPath + outFolderName);
+        int[] featIndex = new int[features.length];
+
+        if (!outFolder.exists()) {
+            try {
+                outFolder.mkdir();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
 
         try(Stream<Path> paths = Files.walk(Paths.get(inputFolder))) {
 
             paths.forEach(filePath -> {
+
                 if (Files.isRegularFile(filePath)) {
 
-                    File file = filePath.toFile();
+                    File arffFile = filePath.toFile();
 
+                    try {
+                        BufferedWriter writer = new BufferedWriter(
+                                new FileWriter(outFolder.getPath() + "/" + arffFile.getName()));
+                        FileInputStream fStream = new FileInputStream(arffFile);
+                        BufferedReader in = new BufferedReader(new InputStreamReader(fStream));
+                        int lineCounter = 0;
+                        int attribute
+
+                        while (in.ready()) {
+                            String line = in.readLine();
+                            lineCounter ++;
+
+                            if (line.startsWith("@attribute")) {
+                                for (int i=0; i<features.length; i++) {
+                                    if (line.split(" ")[1].toLowerCase().equals(features[i].toLowerCase())) {
+                                        featIndex[i] = ;
+                                    }
+                                }
+                            }
+
+                            writer.write(line);
+                        }
+                        writer.close();
+                        in.close();
+
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
 
 
                     System.out.println(filePath);
@@ -91,7 +154,8 @@ public class Application {
             e.printStackTrace();
         }
 
-        /*try {
+        System.out.println("output folder " + parentPath);
+        *//*try {
             BufferedWriter writer = new BufferedWriter(
                     new FileWriter("./" + outputFileName));
 
@@ -113,9 +177,9 @@ public class Application {
             in.close();
         } catch (IOException e) {
             System.out.println("File input error");
-        }*/
+        }*//*
 
-    }
+    }*/
 
     public void generateTextDataFile(File arffFile, String outputFileName) {
 
