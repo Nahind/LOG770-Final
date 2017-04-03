@@ -1,10 +1,6 @@
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.stream.Stream;
-
-import weka.core.Instance;
+import weka.classifiers.Classifier;
+import weka.classifiers.Evaluation;
 import weka.core.Instances;
 import weka.classifiers.trees.J48;
 import weka.classifiers.bayes.NaiveBayes;
@@ -88,6 +84,46 @@ public class Application {
         System.out.println("saved validation dataset");
 
     }
+
+    public Classifier createTreeClassifier (Instances trainingSet) throws java.lang.Exception {
+        String[] options = new String[1];
+        options[0] = "-U";            // unpruned tree
+        J48 tree = new J48();         // new instance of tree
+        tree.setOptions(options);     // set the options
+        tree.buildClassifier(trainingSet);   // build classifier
+        return tree;
+    }
+
+    public Classifier createBayesClassifier (Instances trainingSet) throws java.lang.Exception {
+        String[] options = new String[1];
+        options[0] = "-K";                        // Use kernel density
+        NaiveBayes naiveBayes = new NaiveBayes(); // new instance of naiveBayes
+        naiveBayes.setOptions(options);           // set the options
+        naiveBayes.buildClassifier(trainingSet);  // build classifier
+        return naiveBayes;
+    }
+
+    // http://www.programcreek.com/2013/01/a-simple-machine-learning-example-in-java/
+    public static Evaluation classify(Classifier model,
+                                      Instances trainingSet, Instances testingSet) throws Exception {
+        Evaluation evaluation = new Evaluation(trainingSet);
+
+        model.buildClassifier(trainingSet);
+        evaluation.evaluateModel(model, testingSet);
+
+        return evaluation;
+    }
+
+    public void saveLabeledArffFile(Instances labeled, String fileName) throws java.lang.Exception {
+        // save labeled data
+        BufferedWriter writer = new BufferedWriter(
+                new FileWriter(fileName));
+        writer.write(labeled.toString());
+        writer.newLine();
+        writer.flush();
+        writer.close();
+    }
+
 
     public void generateTextDataFile(File arffFile, String outputFileName) {
 

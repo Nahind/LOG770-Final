@@ -1,8 +1,4 @@
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.stream.Stream;
+
 
 /**
  * Created by nandane on 09/02/17.
@@ -13,7 +9,7 @@ public class Main {
 
         Application wekaApp = new Application();
 
-        String fileName = "msd-trh_dev";
+        String fileName = "msd-ssd_dev";
         String inFolder = "/home/nandane/Documents/Cours_ETS_MTL/LOG770_Intelligence_machine/LAB4/DEVNEW/";
         String outFolder = "/home/nandane/Documents/Cours_ETS_MTL/LOG770_Intelligence_machine/LAB4/DEV_PREPARED/"
                 + fileName.split("_")[0].toUpperCase() + "/";
