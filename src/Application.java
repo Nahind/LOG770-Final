@@ -1,6 +1,7 @@
 import java.io.*;
 import weka.classifiers.Classifier;
 import weka.classifiers.Evaluation;
+import weka.core.Instance;
 import weka.core.Instances;
 import weka.classifiers.trees.J48;
 import weka.classifiers.bayes.NaiveBayes;
@@ -15,13 +16,15 @@ import weka.filters.unsupervised.instance.RemovePercentage;
  */
 public class Application {
 
-    public Instances loadArffFile(File arffFile) throws java.io.IOException {
+    public Instances loadInstancesFromFile(File arffFile) throws java.io.IOException {
+        System.out.println("Starting to load arff file : " + arffFile.getName());
         BufferedReader reader = new BufferedReader(new FileReader(arffFile));
         Instances data = new Instances(reader);
 
         reader.close();
         // set class attributea
         data.setClassIndex(data.numAttributes() - 1);
+        System.out.println("Instances are loaded !");
         return data;
     }
 
@@ -43,7 +46,7 @@ public class Application {
         options_val[2] = "-V";              // invert selection
 
         // Load the training sets
-        Instances rawSet = loadArffFile(rawFile);
+        Instances rawSet = loadInstancesFromFile(rawFile);
 
         // Preprocess by removing string attributes
         RemoveType rt = new RemoveType();
@@ -94,22 +97,51 @@ public class Application {
         return tree;
     }
 
-    public Classifier createBayesClassifier (Instances trainingSet) throws java.lang.Exception {
+    public NaiveBayes createBayesClassifier (Instances trainingSet) throws java.lang.Exception {
         String[] options = new String[1];
         options[0] = "-K";                        // Use kernel density
         NaiveBayes naiveBayes = new NaiveBayes(); // new instance of naiveBayes
         naiveBayes.setOptions(options);           // set the options
-        naiveBayes.buildClassifier(trainingSet);  // build classifier
+        //naiveBayes.buildClassifier(trainingSet);  // build classifier
         return naiveBayes;
     }
 
     // http://www.programcreek.com/2013/01/a-simple-machine-learning-example-in-java/
-    public static Evaluation classify(Classifier model,
+    public Evaluation classify(Classifier model,
                                       Instances trainingSet, Instances testingSet) throws Exception {
-        Evaluation evaluation = new Evaluation(trainingSet);
 
+        System.out.println("Starting classification");
+        Evaluation evaluation = new Evaluation(trainingSet);
         model.buildClassifier(trainingSet);
+        int a = 2;
+        System.out.println("Model is built !");
+        System.out.println("Starting Evaluation...");
+        a = 3;
+
         evaluation.evaluateModel(model, testingSet);
+        System.out.println("Evaluation has ended !");
+
+        return evaluation;
+    }
+
+    public Evaluation classifyV2(NaiveBayes model,
+                               Instances trainingSet, Instances testingSet) throws Exception {
+
+        int counter = 0;
+        System.out.println("Starting classification");
+        Evaluation evaluation = new Evaluation(trainingSet);
+        model.buildClassifier(trainingSet);
+        System.out.println("Model is built !");
+        System.out.println("Starting Evaluation...");
+
+
+        for (Instance i : testingSet) {
+            counter++;
+            if (counter % 1000 == 0) System.out.println("counter = " + counter);
+            evaluation.evaluateModelOnce(model, i);
+        }
+
+        System.out.println("Evaluation has ended !");
 
         return evaluation;
     }
